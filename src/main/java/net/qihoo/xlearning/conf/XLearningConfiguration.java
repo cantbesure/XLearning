@@ -43,6 +43,10 @@ public class XLearningConfiguration extends YarnConfiguration {
 
   public static final boolean DEFAULT_XLEARNING_USER_CLASSPATH_FIRST = true;
 
+  public static final String XLEARNING_REPORT_CONTAINER_STATUS = "xlearning.report.container.status";
+
+  public static final boolean DEFAULT_XLEARNING_REPORT_CONTAINER_STATUS = true;
+
   public static final String XLEARNING_AM_MEMORY = "xlearning.am.memory";
 
   public static final int DEFAULT_XLEARNING_AM_MEMORY = 1024;
@@ -135,6 +139,18 @@ public class XLearningConfiguration extends YarnConfiguration {
 
   public static final Boolean DEFAULT_XLEARNING_INPUT_STREAM_SHUFFLE = false;
 
+  public static final String XLEARNING_INPUTFORMAT_CACHESIZE_LIMIT= "xlearning.inputformat.cachesize.limit";
+
+  public static final int DEFAULT_XLEARNING_INPUTFORMAT_CACHESIZE_LIMIT = 100 * 1024;
+
+  public static final String XLEARNING_INPUTFORMAT_CACHE = "xlearning.inputformat.cache";
+
+  public static final boolean DEFAULT_XLEARNING_INPUTFORMAT_CACHE = false;
+
+  public static final String XLEARNING_INPUTFORMAT_CACHEFILE_NAME = "xlearning.inputformat.cachefile.name";
+
+  public static final String DEFAULT_XLEARNING_INPUTFORMAT_CACHEFILE_NAME = "inputformatCache.gz";
+
   public static final String XLEARNING_INTERREAULST_DIR = "xlearning.interresult.dir";
 
   public static final String DEFAULT_XLEARNING_INTERRESULT_DIR = "/interResult_";
@@ -150,6 +166,9 @@ public class XLearningConfiguration extends YarnConfiguration {
       "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*",
       "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
   };
+
+  public static final String XLEARNING_TF_BOARD_PATH = "xlearning.tf.board.path";
+  public static final String DEFAULT_XLEARNING_TF_BOARD_PATH = "tensorboard";
   public static final String XLEARNING_TF_BOARD_WORKER_INDEX = "xlearning.tf.board.worker.index";
   public static final int DEFAULT_XLEARNING_TF_BOARD_WORKER_INDEX = 0;
   public static final String XLEARNING_TF_BOARD_RELOAD_INTERVAL = "xlearning.tf.board.reload.interval";
@@ -160,6 +179,12 @@ public class XLearningConfiguration extends YarnConfiguration {
   public static final Boolean DEFAULT_XLEARNING_TF_BOARD_ENABLE = true;
   public static final String XLEARNING_TF_BOARD_HISTORY_DIR = "xlearning.tf.board.history.dir";
   public static final String DEFAULT_XLEARNING_TF_BOARD_HISTORY_DIR = "/tmp/XLearning/eventLog";
+  public static final String XLEARNING_BOARD_PATH = "xlearning.board.path";
+  public static final String DEFAULT_XLEARNING_BOARD_PATH = "visualDL";
+  public static final String XLEARNING_BOARD_MODELPB = "xlearning.board.modelpb";
+  public static final String DEFAULT_XLEARNING_BOARD_MODELPB = "";
+  public static final String XLEARNING_BOARD_CACHE_TIMEOUT = "xlearning.board.cache.timeout";
+  public static final int DEFAULT_XLEARNING_BOARD_CACHE_TIMEOUT = 20;
   /**
    * Configuration used in ApplicationMaster
    */
@@ -178,6 +203,10 @@ public class XLearningConfiguration extends YarnConfiguration {
   public static final String XLEARNING_TASK_TIMEOUT = "xlearning.task.timeout";
 
   public static final int DEFAULT_XLEARNING_TASK_TIMEOUT = 5 * 60 * 1000;
+
+  public static final String XLEARNING_LOCALRESOURCE_TIMEOUT = "xlearning.localresource.timeout";
+
+  public static final int DEFAULT_XLEARNING_LOCALRESOURCE_TIMEOUT = 5 * 60 * 1000;
 
   public static final String XLEARNING_TASK_TIMEOUT_CHECK_INTERVAL_MS = "xlearning.task.timeout.check.interval";
 
