@@ -62,6 +62,7 @@ public class ApplicationMaster extends CompositeService {
   private int psNum;
   private Boolean single;
   private Boolean singleMx;
+  private Boolean singlePT;
   private int appPriority;
   // location of AppMaster.jar on HDFS
   private Path appJarRemoteLocation;
@@ -138,6 +139,7 @@ public class ApplicationMaster extends CompositeService {
     psNum = conf.getInt(XLearningConfiguration.XLEARNING_PS_NUM, XLearningConfiguration.DEFAULT_XLEARNING_PS_NUM);
     single = conf.getBoolean(XLearningConfiguration.XLEARNING_TF_MODE_SINGLE, XLearningConfiguration.DEFAULT_XLEARNING_TF_MODE_SINGLE);
     singleMx = conf.getBoolean(XLearningConfiguration.XLEARNING_MXNET_MODE_SINGLE, XLearningConfiguration.DEFAULT_XLEARNING_MXNET_MODE_SINGLE);
+    singlePT = conf.getBoolean(XLearningConfiguration.XLEARNING_PYTORCH_MODE_SINGLE,XLearningConfiguration.DEFAULT_XLEARNING_PYTORCH_MODE_SINGLE);
     appPriority = conf.getInt(XLearningConfiguration.XLEARNING_APP_PRIORITY, XLearningConfiguration.DEFAULT_XLEARNING_APP_PRIORITY);
     acquiredWorkerContainers = new ArrayList<>();
     acquiredPsContainers = new ArrayList<>();
@@ -768,6 +770,37 @@ public class ApplicationMaster extends CompositeService {
     return containerEnv;
   }
 
+  private Map<String, String> buildContainerEnv(String role,int containerIndex,String addr,String port){
+    LOG.info("Setting environments for the Container");
+    Map<String, String> containerEnv = new HashMap<>();
+    containerEnv.put(XLearningConstants.Environment.HADOOP_USER_NAME.toString(), conf.get("hadoop.job.ugi").split(",")[0]);
+    containerEnv.put(XLearningConstants.Environment.XLEARNING_TF_ROLE.toString(), role);
+    containerEnv.put(XLearningConstants.Environment.XLEARNING_EXEC_CMD.toString(), xlearningCommand);
+    containerEnv.put(XLearningConstants.Environment.XLEARNING_APP_TYPE.toString(), xlearningAppType);
+
+    containerEnv.put("RANK",String.valueOf(containerIndex));
+    containerEnv.put("WORLD_SIZE",XLearningConfiguration.XLEARNING_WORKER_NUM);
+    containerEnv.put("MASTER_ADDR",addr);
+    containerEnv.put("MASTER_PORT",port);
+
+    containerEnv.put("CLASSPATH", System.getenv("CLASSPATH"));
+    containerEnv.put(XLearningConstants.Environment.APP_ATTEMPTID.toString(), applicationAttemptID.toString());
+    containerEnv.put(XLearningConstants.Environment.APP_ID.toString(), applicationAttemptID.getApplicationId().toString());
+
+    containerEnv.put(XLearningConstants.Environment.APPMASTER_HOST.toString(),
+            System.getenv(ApplicationConstants.Environment.NM_HOST.toString()));
+    containerEnv.put(XLearningConstants.Environment.APPMASTER_PORT.toString(),
+            String.valueOf(containerListener.getServerPort()));
+    containerEnv.put("PATH", System.getenv("PATH") + ":" + System.getenv(XLearningConstants.Environment.USER_PATH.toString()));
+
+    LOG.debug("env:" + containerEnv.toString());
+    Set<String> envStr = containerEnv.keySet();
+    for (String anEnvStr : envStr) {
+      LOG.debug("env:" + anEnvStr);
+    }
+    return containerEnv;
+  }
+
   private List<String> buildContainerLaunchCommand(int containerMemory) {
     List<String> containerLaunchcommands = new ArrayList<>();
     LOG.info("Setting up container command");
@@ -1056,6 +1089,13 @@ public class ApplicationMaster extends CompositeService {
 
     }
 
+    //launch dist PyTorch scheduler
+    // TODO: ADD Scheduler for PyTorch
+    if (xlearningAppType.equals("PYTORCH") && !singlePT){
+      LOG.info("Setting environments for the PyTorch scheduler");
+
+    }
+
     //launch dist xgboost scheduler
     if (xlearningAppType.equals("DISTXGBOOST")) {
       LOG.info("Seting environments for the dist xgboost scheduler");
@@ -1157,9 +1197,26 @@ public class ApplicationMaster extends CompositeService {
       containerListener.registerContainer(new XLearningContainerId(container.getId()), XLearningConstants.PS);
     }
     index = 0;
+    String ptAddr="",ptPort="";
     for (Container container : acquiredWorkerContainers) {
       LOG.info("Launching worker container " + container.getId()
           + " on " + container.getNodeId().getHost() + ":" + container.getNodeId().getPort());
+
+      if (xlearningAppType.equals("PYTORCH") && !singlePT){
+        if (index==0){
+          ptAddr=container.getNodeId().getHost();
+//          ptPort=String.valueOf(container.getNodeId().getPort());
+          Socket pytorchReservedSocket = new Socket();
+          try {
+            pytorchReservedSocket.bind(new InetSocketAddress(ptAddr, 0));
+          } catch (IOException e) {
+            LOG.error("Can not get available port");
+          }
+          ptPort = String.valueOf(pytorchReservedSocket.getLocalPort());
+          pytorchReservedSocket.close();
+        }
+        workerContainerEnv=buildContainerEnv(XLearningConstants.WORKER,index,ptAddr,ptPort);
+      }
 
       //TODO launch container in special thread take with fault-tolerant
       launchContainer(containerLocalResource, workerContainerEnv,
