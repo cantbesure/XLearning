@@ -119,6 +119,12 @@ public class Client {
       }
     }
 
+    if ("PYTORCH".equals(clientArguments.appType)) {
+      if (conf.getInt(XLearningConfiguration.XLEARNING_WORKER_NUM, XLearningConfiguration.DEFAULT_XLEARNING_WORKER_NUM) == 1){
+        conf.setBoolean(XLearningConfiguration.XLEARNING_PYTORCH_MODE_SINGLE,true);
+      }
+    }
+
     if (conf.getInt(XLearningConfiguration.XLEARNING_WORKER_NUM, XLearningConfiguration.DEFAULT_XLEARNING_WORKER_NUM) == 1) {
       conf.setInt(XLearningConfiguration.XLEARNING_TF_BOARD_WORKER_INDEX, 0);
     }
@@ -321,6 +327,16 @@ public class Client {
       int limitNode = conf.getInt(XLearningConfiguration.XLEARNING_EXECUTE_NODE_LIMIT, XLearningConfiguration.DEFAULT_XLEARNING_EXECUTENODE_LIMIT);
       if (workerNum + psNum > limitNode) {
         throw new RequestOverLimitException("Container num requested over the limit " + limitNode);
+      }
+    }
+
+    if ("PYTORCH".equals(clientArguments.appType)){
+      Boolean single=conf.getBoolean(XLearningConfiguration.XLEARNING_PYTORCH_MODE_SINGLE, XLearningConfiguration.DEFAULT_XLEARNING_PYTORCH_MODE_SINGLE);
+      int limitNode = conf.getInt(XLearningConfiguration.XLEARNING_EXECUTE_NODE_LIMIT, XLearningConfiguration.DEFAULT_XLEARNING_EXECUTENODE_LIMIT);
+      if (!single){
+        if (workerNum > limitNode) {
+          throw new RequestOverLimitException("Container num requested over the limit " + limitNode);
+        }
       }
     }
   }
